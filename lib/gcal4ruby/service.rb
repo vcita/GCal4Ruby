@@ -38,15 +38,15 @@ module GCal4Ruby
   #2. Get Calendar List
   #    calendars = service.calendars
   #
-  class Service < GData4Ruby::Service
+  class Service
     CALENDAR_LIST_FEED = 'http://www.google.com/calendar/feeds/default/allcalendars/full'
+    
+    # The type of GData4Ruby service we want to use
+    attr_reader :gdata_service
     
     #Convenience attribute contains the currently authenticated account name
     attr_reader :account
-        
-    # The token returned by the Google servers, used to authorize all subsequent messages
-    attr_reader :auth_token
-    
+          
     # Determines whether GCal4Ruby ensures a calendar is public.  Setting this to false can increase speeds by 
     # 50% but can cause errors if you try to do something to a calendar that is not public and you don't have
     # adequate permissions
@@ -54,7 +54,12 @@ module GCal4Ruby
     
     #Accepts an optional attributes hash for initialization values
     def initialize(attributes = {})
-      super(attributes)
+      # If the user has specified the type of GData4Ruby class they want, instantiate it
+      if(attributes.has_key{:GData4RubyService})
+        gdata_service = GData4Ruby.const_get(attributes[:GData4RubyService]).new(attributes)
+      end
+      # Otherwise use the default service
+      gdata_service ||= GData4Ruby::Service(attributes)
       attributes.each do |key, value|
         self.send("#{key}=", value)
       end    
@@ -65,24 +70,29 @@ module GCal4Ruby
       return "http://www.google.com/calendar/feeds/#{@account}/private/full"
     end
   
-    # The authenticate method passes the username and password to google servers.  
+    # The authenticate method passes an  for the service to use to access Google's servers  
     # If authentication succeeds, returns true, otherwise raises the AuthenticationFailed error.
-    def authenticate(username, password, service='cl')
-      super(username, password, service)
+    def authenticate(options = {:service => 'cl'})
+      gdata_service.authenticate(options)
     end
     
     #Helper function to reauthenticate to a new Google service without having to re-set credentials.
-    def reauthenticate(service='cl')
-      authenticate(@account, @password, service)
+    def reauthenticate(options = {:service => 'cl'})
+      gdata_service.reauthenticate(options)
+    end
+    
+    # Passes a request along from a GData4Ruby GDataObject to a GData4Ruby Base (Service) to be invoked
+    def send_request(request)
+      gdata_servce.send_request(request)
     end
   
     #Returns an array of Calendar objects for each calendar associated with 
     #the authenticated account.
     def calendars
-      if not @auth_token
+      if not gdata_service.authenticated?
          raise NotAuthenticated
       end
-      ret = send_request(GData4Ruby::Request.new(:get, CALENDAR_LIST_FEED, nil, {"max-results" => "10000"}))
+      ret = gdata_service.send_request(GData4Ruby::Request.new(:get, CALENDAR_LIST_FEED, nil, {"max-results" => "10000"}))
       cals = []
       REXML::Document.new(ret.body).root.elements.each("entry"){}.map do |entry|
         entry = GData4Ruby::Utils.add_namespaces(entry)
@@ -95,7 +105,7 @@ module GCal4Ruby
     
     #Returns an array of Event objects for each event in this account
     def events
-      if not @auth_token
+      if notgdata_service.authenticated?
          raise NotAuthenticated
       end
       ret = send_request(GData4Ruby::Request.new(:get, default_event_feed, nil, {"max-results" => "10000"}))
