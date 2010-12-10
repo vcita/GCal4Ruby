@@ -209,7 +209,7 @@ module GCal4Ruby
     
     #The event start time.  If a recurring event, the recurrence start time.
     def start_time
-      return @start_time ? @start_time : @recurrence ? @recurrence .start_time : nil
+      return @start_time ? @start_time : @recurrence ? @recurrence.start_time : nil
     end
     
     #The event end time.  If a recurring event, the recurrence end time.
@@ -358,7 +358,7 @@ module GCal4Ruby
     #Finds an Event based on a text query or by an id.  Parameters are:
     #*service*::  A valid Service object to search.
     #*query*:: either a string containing a text query to search by, or a hash containing an +id+ key with an associated id to find, or a +query+ key containint a text query to search for, or a +title+ key containing a title to search.  All searches are case insensitive.
-    #*args*:: a hash containing optional additional query paramters to use.  Limit a search to a single calendar by passing the calendar id as {:calendar => calendar.id}.  See here[http://code.google.com/apis/calendar/data/2.0/developers_guide_protocol.html#RetrievingEvents] and here[http://code.google.com/apis/gdata/docs/2.0/reference.html#Queries] for a full list of possible values.  Example: 
+    #*args*:: a hash containing optional additional query paramters to use.  Limit a search to a single calendar by passing a calendar object as {:calender => calendar} or the calendar id as {:calendar => calendar.id}.  See here[http://code.google.com/apis/calendar/data/2.0/developers_guide_protocol.html#RetrievingEvents] and here[http://code.google.com/apis/gdata/docs/2.0/reference.html#Queries] for a full list of possible values.  Example: 
     # {'max-results' => '100'}
     #If an ID is specified, a single instance of the event is returned if found, otherwise false.
     #If a query term or title text is specified, and array of matching results is returned, or an empty array if nothing
@@ -383,7 +383,7 @@ module GCal4Ruby
           args["q"] = CGI::escape(query) if query != ''
         end
         if args[:calendar]
-          cal = Calendar.find(service, {:id => args[:calendar]})
+          cal = args[:calendar].is_a?(Calendar) ? args[:calendar] : Calendar.find(service, {:id => args[:calendar]})
           args.delete(:calendar)
           ret = service.send_request(GData4Ruby::Request.new(:get, cal.content_uri, nil, nil, args))
           xml = REXML::Document.new(ret.body).root
