@@ -42,8 +42,8 @@ module GCal4Ruby
   #attributes like you would any other object.  Be sure to save the calendar to write changes
   #to the Google Calendar service.
   class Calendar < GData4Ruby::GDataObject
-    @@calendar_feed = "www.google.com/calendar/feeds/default/owncalendars/full/"
-    @@calendar_query_feed = "www.google.com/calendar/feeds/default/calendars/"
+    @@calendar_feed = "http://www.google.com/calendar/feeds/default/owncalendars/full/"
+    @@calendar_query_feed = "http://www.google.com/calendar/feeds/default/calendars/"
     @@calendar_xml = "<entry xmlns='http://www.w3.org/2005/Atom' 
          xmlns:gd='http://schemas.google.com/g/2005' 
          xmlns:gCal='http://schemas.google.com/gCal/2005'>
@@ -172,10 +172,9 @@ module GCal4Ruby
       raise ArgumentError, 'query must be a hash or string' if not query.is_a? Hash and not query.is_a? String
       if query.is_a? Hash and query[:id]
         id = query[:id]
-        puts "id passed, finding calendar by id" if service.debug
-        puts "id = "+id if service.debug
-        d = service.send_request(GData4Ruby::Request.new(:get, @@calendar_feed+id, {"If-Not-Match" => "*"}))
-        puts d.inspect if service.debug
+        #log("Finding by ID: #{id}")
+        d = service.send_request(GData4Ruby::Request.new(:get, id, {}))
+        #log(d.inspect)
         if d
           return get_instance(service, d)
         end
@@ -324,7 +323,7 @@ module GCal4Ruby
       
       output += "&src=#{id}"
       
-      "<iframe src='#{service.create_url("http://www.google.com/calendar/embed?"+output)}' style='#{params[:border]} px solid;' width='#{params[:width]}' height='#{params[:height]}' frameborder='#{params[:border]}' scrolling='no'></iframe>"  
+      "<iframe src='#{service.create_url("www.google.com/calendar/embed?"+output)}' style='#{params[:border]} px solid;' width='#{params[:width]}' height='#{params[:height]}' frameborder='#{params[:border]}' scrolling='no'></iframe>"  
     end
     
     #Helper function to return a specified calendar id as a formatted iframe embedded google calendar.  This function does not require loading the calendar information from the Google calendar
@@ -357,7 +356,7 @@ module GCal4Ruby
       
       output += "&src=#{id}"
       
-      "<iframe src='#{service.create_url("http://www.google.com/calendar/embed?"+output)}' style='#{params[:border]} px solid;' width='#{params[:width]}' height='#{params[:height]}' frameborder='#{params[:border]}' scrolling='no'></iframe>"  
+      "<iframe src='#{service.create_url("www.google.com/calendar/embed?"+output)}' style='#{params[:border]} px solid;' width='#{params[:width]}' height='#{params[:height]}' frameborder='#{params[:border]}' scrolling='no'></iframe>"  
     end
     
     private

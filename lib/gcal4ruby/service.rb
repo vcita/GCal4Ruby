@@ -39,7 +39,7 @@ module GCal4Ruby
   #    calendars = service.calendars
   #
   class Service
-    @@calendar_list_feed = 'www.google.com/calendar/feeds/default/allcalendars/full'
+    @@calendar_list_feed = 'www.google.com/calendar/feeds/default/owncalendars/full'
     
     # The type of GData4Ruby service we want to use
     attr_accessor :gdata_service
@@ -65,7 +65,9 @@ module GCal4Ruby
           self.send("#{key}=", value)
         end
       end    
+      @check_public ||= true
       @account ||= "default"
+      @debug ||= false
       log("Check Public: #{check_public}")
     end
     
@@ -79,7 +81,7 @@ module GCal4Ruby
     end
     
     def log(string)
-      puts string if self.debug
+      puts string if debug
     end
     
     def default_event_feed
@@ -114,7 +116,7 @@ module GCal4Ruby
     #Returns an array of Calendar objects for each calendar associated with 
     #the authenticated account.
     def calendars
-      ret = send_request(GData4Ruby::Request.new(:get, create_url(@@calendar_list_feed), nil, {"max-results" => "10000"}))
+      ret = send_request(GData4Ruby::Request.new(:get, create_url(@@calendar_list_feed + "?fields=entry(@gd:*,id,title)"), nil, {"max-results" => "10000"}))
       cals = []
       REXML::Document.new(ret.body).root.elements.each("entry"){}.map do |entry|
         entry = GData4Ruby::Utils.add_namespaces(entry)
