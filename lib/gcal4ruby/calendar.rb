@@ -42,9 +42,9 @@ module GCal4Ruby
   #attributes like you would any other object.  Be sure to save the calendar to write changes
   #to the Google Calendar service.
   class Calendar < GData4Ruby::GDataObject
-    CALENDAR_FEED = "http://www.google.com/calendar/feeds/default/owncalendars/full/"
-    CALENDAR_QUERY_FEED = "http://www.google.com/calendar/feeds/default/calendars/"
-    CALENDAR_XML = "<entry xmlns='http://www.w3.org/2005/Atom' 
+    @@calendar_feed = "www.google.com/calendar/feeds/default/owncalendars/full/"
+    @@calendar_query_feed = "www.google.com/calendar/feeds/default/calendars/"
+    @@calendar_xml = "<entry xmlns='http://www.w3.org/2005/Atom' 
          xmlns:gd='http://schemas.google.com/g/2005' 
          xmlns:gCal='http://schemas.google.com/gCal/2005'>
     <title type='text'></title>
@@ -86,7 +86,7 @@ module GCal4Ruby
       if !service.is_a?(Service)
         raise InvalidService
       end
-      @xml = CALENDAR_XML
+      @xml = @@calendar_xml
       @service ||= service
       @exists = false
       @title ||= ""
@@ -154,7 +154,7 @@ module GCal4Ruby
     
     #Creates a new instance of the object
     def create
-      return service.send_request(GData4Ruby::Request.new(:post, CALENDAR_FEED, to_xml()))
+      return service.send_request(GData4Ruby::Request.new(:post, @@calendar_feed, to_xml()))
     end
     
     #Finds a Calendar based on a text query or by an id.  Parameters are:
@@ -171,7 +171,7 @@ module GCal4Ruby
         id = query[:id]
         puts "id passed, finding calendar by id" if service.debug
         puts "id = "+id if service.debug
-        d = service.send_request(GData4Ruby::Request.new(:get, CALENDAR_FEED+id, {"If-Not-Match" => "*"}))
+        d = service.send_request(GData4Ruby::Request.new(:get, @@calendar_feed+id, {"If-Not-Match" => "*"}))
         puts d.inspect if service.debug
         if d
           return get_instance(service, d)
@@ -237,7 +237,7 @@ module GCal4Ruby
       xml.root.elements.each(){}.map do |ele|
         case ele.name
           when "id"
-          @id = ele.text.gsub("http://www.google.com/calendar/feeds/default/calendars/", "")
+          @id = ele.text.gsub("www.google.com/calendar/feeds/default/calendars/", "")
           when 'summary'
           @summary = ele.text
           when "color"
@@ -314,7 +314,7 @@ module GCal4Ruby
       
       output += "&src=#{id}"
       
-      "<iframe src='http://www.google.com/calendar/embed?#{output}' style='#{params[:border]} px solid;' width='#{params[:width]}' height='#{params[:height]}' frameborder='#{params[:border]}' scrolling='no'></iframe>"  
+      "<iframe src='#{@service.create_url("http://www.google.com/calendar/embed?"+output)}' style='#{params[:border]} px solid;' width='#{params[:width]}' height='#{params[:height]}' frameborder='#{params[:border]}' scrolling='no'></iframe>"  
     end
     
     #Helper function to return a specified calendar id as a formatted iframe embedded google calendar.  This function does not require loading the calendar information from the Google calendar
@@ -347,7 +347,7 @@ module GCal4Ruby
       
       output += "&src=#{id}"
       
-      "<iframe src='http://www.google.com/calendar/embed?#{output}' style='#{params[:border]} px solid;' width='#{params[:width]}' height='#{params[:height]}' frameborder='#{params[:border]}' scrolling='no'></iframe>"  
+      "<iframe src='#{@service.create_url("http://www.google.com/calendar/embed?"+output)}' style='#{params[:border]} px solid;' width='#{params[:width]}' height='#{params[:height]}' frameborder='#{params[:border]}' scrolling='no'></iframe>"  
     end
     
     private

@@ -39,14 +39,14 @@ module GCal4Ruby
   #    calendars = service.calendars
   #
   class Service
-    CALENDAR_LIST_FEED = 'http://www.google.com/calendar/feeds/default/allcalendars/full'
+    @@calendar_list_feed = 'www.google.com/calendar/feeds/default/allcalendars/full'
     
     # The type of GData4Ruby service we want to use
-    attr_reader :gdata_service
+    attr_accessor :gdata_service
     
-    #Convenience attribute contains the currently authenticated account name
-    attr_reader :account
-          
+    # Convenience attribute contains the currently authenticated account name
+    attr_accessor :account
+         
     # Determines whether GCal4Ruby ensures a calendar is public.  Setting this to false can increase speeds by 
     # 50% but can cause errors if you try to do something to a calendar that is not public and you don't have
     # adequate permissions
@@ -61,13 +61,17 @@ module GCal4Ruby
       # Otherwise use the default service
       @gdata_service ||= GData4Ruby::Service.new(attributes)
       attributes.each do |key, value|
-        self.send("#{key}=", value)
+        if self.respond_to?(key)
+          self.send("#{key}=", value)
+        end
       end    
       @check_public ||= true
+      @account ||= "default"
+      @debug ||= false
     end
     
     def debug
-      return (@debug != nil)
+      return @debug
     end
     
     def debug=(value)
@@ -76,17 +80,23 @@ module GCal4Ruby
     end
     
     def default_event_feed
-      return "http://www.google.com/calendar/feeds/#{@account}/private/full"
+      return create_url("www.google.com/calendar/feeds/#{@account}/private/full")
     end
   
     # The authenticate method passes an  for the service to use to access Google's servers  
     # If authentication succeeds, returns true, otherwise raises the AuthenticationFailed error.
-    def authenticate(options = {:service => 'cl'})
+    def authenticate(options = {})
+      if not options.has_key?(:service)
+        options[:service] = 'cl'
+      end
       @gdata_service.authenticate(options)
     end
     
     #Helper function to reauthenticate to a new Google service without having to re-set credentials.
-    def reauthenticate(options = {:service => 'cl'})
+    def reauthenticate(options = {})
+      if not options.has_key?(:service)
+        options[:service] = 'cl'
+      end
       @gdata_service.reauthenticate(options)
     end
     
@@ -99,9 +109,9 @@ module GCal4Ruby
     #the authenticated account.
     def calendars
       if not @gdata_service.authenticated?
-         raise NotAuthenticated
+         raise GData4Ruby::NotAuthenticated
       end
-      ret = @gdata_service.send_request(GData4Ruby::Request.new(:get, CALENDAR_LIST_FEED, nil, {"max-results" => "10000"}))
+      ret = @gdata_service.send_request(GData4Ruby::Request.new(:get, create_url(@@calendar_list_feed), nil, {"max-results" => "10000"}))
       cals = []
       REXML::Document.new(ret.body).root.elements.each("entry"){}.map do |entry|
         entry = GData4Ruby::Utils.add_namespaces(entry)
@@ -115,7 +125,7 @@ module GCal4Ruby
     #Returns an array of Event objects for each event in this account
     def events
       if not @gdata_service.authenticated?
-         raise NotAuthenticated
+         raise GData4Ruby::NotAuthenticated
       end
       ret = send_request(GData4Ruby::Request.new(:get, default_event_feed, nil, {"max-results" => "10000"}))
       events = []
@@ -126,6 +136,11 @@ module GCal4Ruby
         events << event
       end
       return events
+    end
+    
+    # Builds a URL
+    def create_url(path)
+      return @gdata_service.create_url(path)
     end
     
     #Helper function to return a formatted iframe embedded google calendar.  Parameters are:
@@ -173,7 +188,7 @@ module GCal4Ruby
         output += "src=#{cal_list[0].id}&"
       end
           
-      "<iframe src='http://www.google.com/calendar/embed?#{output}' style='#{params[:border]} px solid;' width='#{params[:width]}' height='#{params[:height]}' frameborder='#{params[:border]}' scrolling='no'></iframe>"
+      "<iframe src='#{create_url("www.google.com/calendar/embed?"+output)}' style='#{params[:border]} px solid;' width='#{params[:width]}' height='#{params[:height]}' frameborder='#{params[:border]}' scrolling='no'></iframe>"
     end
   end
 end
