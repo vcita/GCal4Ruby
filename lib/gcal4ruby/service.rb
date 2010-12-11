@@ -102,15 +102,15 @@ module GCal4Ruby
     
     # Passes a request along from a GData4Ruby GDataObject to a GData4Ruby Base (Service) to be invoked
     def send_request(request)
-      @gdata_servce.send_request(request)
+      if not @gdata_service.authenticated?
+         raise GData4Ruby::NotAuthenticated
+      end
+      @gdata_service.send_request(request)
     end
   
     #Returns an array of Calendar objects for each calendar associated with 
     #the authenticated account.
     def calendars
-      if not @gdata_service.authenticated?
-         raise GData4Ruby::NotAuthenticated
-      end
       ret = @gdata_service.send_request(GData4Ruby::Request.new(:get, create_url(@@calendar_list_feed), nil, {"max-results" => "10000"}))
       cals = []
       REXML::Document.new(ret.body).root.elements.each("entry"){}.map do |entry|
@@ -124,10 +124,7 @@ module GCal4Ruby
     
     #Returns an array of Event objects for each event in this account
     def events
-      if not @gdata_service.authenticated?
-         raise GData4Ruby::NotAuthenticated
-      end
-      ret = send_request(GData4Ruby::Request.new(:get, default_event_feed, nil, {"max-results" => "10000"}))
+     ret = send_request(GData4Ruby::Request.new(:get, default_event_feed, nil, {"max-results" => "10000"}))
       events = []
       REXML::Document.new(ret.body).root.elements.each("entry"){}.map do |entry|
         entry = GData4Ruby::Utils.add_namespaces(entry)

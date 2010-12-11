@@ -97,7 +97,9 @@ module GCal4Ruby
       @color ||= "#2952A3"
       @where ||= ""
       attributes.each do |key, value|
-        self.send("#{key}=", value)
+        if self.respond_to("#{key}=")
+          self.send("#{key}=", value)
+        end
       end
       return true
     end
@@ -258,24 +260,31 @@ module GCal4Ruby
       end
       
       if @service.check_public
-        puts "Getting ACL Feed" if @service.debug
+        log("Getting ACL Feed")
+        
+        # If the ACL URI doesn't exist, then its definitely not public
+        if (@acl_uri == nil)
+          @public = false
+          return true
+        end
         
         #rescue error on shared calenar ACL list access
         begin 
-          ret = @service.send_request(GData4Ruby::Request.new(:get, @acl_uri))
+          log("ACL URI: #{@acl_uri}")
+          ret = service.send_request(GData4Ruby::Request.new(:get, @acl_uri))
         rescue Exception => e
-          puts "ACL Feed Get Failed: #{e.inspect}" if @service.debug
+          log("ACL Feed Get Failed: #{e.inspect}")
           @public = false
           return true
         end
         r = REXML::Document.new(ret.read_body)
         r.root.elements.each("entry") do |ele|
-          e = GData4Ruby::ACL::AccessRule.new(service, self)
+          e = GData4Ruby::ACL::AccessRule.new(service.gdata_service, self)
           ele = GData4Ruby::Utils.add_namespaces(ele)
           e.load(ele.to_s)
-          puts 'acl rule = '+e.inspect if service.debug
+          log('ACL Rule: '+e.inspect)
           @public = (e.role.include? 'read' and e.user == 'default')
-          puts 'public = '+@public.to_s if service.debug
+          log('Public: '+@public.to_s)
           break if @public
         end
       else
@@ -314,7 +323,7 @@ module GCal4Ruby
       
       output += "&src=#{id}"
       
-      "<iframe src='#{@service.create_url("http://www.google.com/calendar/embed?"+output)}' style='#{params[:border]} px solid;' width='#{params[:width]}' height='#{params[:height]}' frameborder='#{params[:border]}' scrolling='no'></iframe>"  
+      "<iframe src='#{service.create_url("http://www.google.com/calendar/embed?"+output)}' style='#{params[:border]} px solid;' width='#{params[:width]}' height='#{params[:height]}' frameborder='#{params[:border]}' scrolling='no'></iframe>"  
     end
     
     #Helper function to return a specified calendar id as a formatted iframe embedded google calendar.  This function does not require loading the calendar information from the Google calendar
@@ -347,7 +356,7 @@ module GCal4Ruby
       
       output += "&src=#{id}"
       
-      "<iframe src='#{@service.create_url("http://www.google.com/calendar/embed?"+output)}' style='#{params[:border]} px solid;' width='#{params[:width]}' height='#{params[:height]}' frameborder='#{params[:border]}' scrolling='no'></iframe>"  
+      "<iframe src='#{service.create_url("http://www.google.com/calendar/embed?"+output)}' style='#{params[:border]} px solid;' width='#{params[:width]}' height='#{params[:height]}' frameborder='#{params[:border]}' scrolling='no'></iframe>"  
     end
     
     private
