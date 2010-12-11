@@ -53,17 +53,26 @@ module GCal4Ruby
     attr_accessor :check_public
     
     #Accepts an optional attributes hash for initialization values
-    def initialize(attributes = {})
+    def initialize(attributes = {}, service = nil)
       # If the user has specified the type of GData4Ruby class they want, instantiate it
-      if(attributes.has_key{:GData4RubyService})
-        gdata_service = GData4Ruby.const_get(attributes[:GData4RubyService]).new(attributes)
+      if(service != nil)
+        @gdata_service = GData4Ruby.const_get(service).new(attributes)
       end
       # Otherwise use the default service
-      gdata_service ||= GData4Ruby::Service(attributes)
+      @gdata_service ||= GData4Ruby::Service.new(attributes)
       attributes.each do |key, value|
         self.send("#{key}=", value)
       end    
       @check_public ||= true
+    end
+    
+    def debug
+      return (@debug != nil)
+    end
+    
+    def debug=(value)
+      @debug=value
+      @gdata_service.debug = value
     end
     
     def default_event_feed
@@ -73,26 +82,26 @@ module GCal4Ruby
     # The authenticate method passes an  for the service to use to access Google's servers  
     # If authentication succeeds, returns true, otherwise raises the AuthenticationFailed error.
     def authenticate(options = {:service => 'cl'})
-      gdata_service.authenticate(options)
+      @gdata_service.authenticate(options)
     end
     
     #Helper function to reauthenticate to a new Google service without having to re-set credentials.
     def reauthenticate(options = {:service => 'cl'})
-      gdata_service.reauthenticate(options)
+      @gdata_service.reauthenticate(options)
     end
     
     # Passes a request along from a GData4Ruby GDataObject to a GData4Ruby Base (Service) to be invoked
     def send_request(request)
-      gdata_servce.send_request(request)
+      @gdata_servce.send_request(request)
     end
   
     #Returns an array of Calendar objects for each calendar associated with 
     #the authenticated account.
     def calendars
-      if not gdata_service.authenticated?
+      if not @gdata_service.authenticated?
          raise NotAuthenticated
       end
-      ret = gdata_service.send_request(GData4Ruby::Request.new(:get, CALENDAR_LIST_FEED, nil, {"max-results" => "10000"}))
+      ret = @gdata_service.send_request(GData4Ruby::Request.new(:get, CALENDAR_LIST_FEED, nil, {"max-results" => "10000"}))
       cals = []
       REXML::Document.new(ret.body).root.elements.each("entry"){}.map do |entry|
         entry = GData4Ruby::Utils.add_namespaces(entry)
@@ -105,7 +114,7 @@ module GCal4Ruby
     
     #Returns an array of Event objects for each event in this account
     def events
-      if notgdata_service.authenticated?
+      if not @gdata_service.authenticated?
          raise NotAuthenticated
       end
       ret = send_request(GData4Ruby::Request.new(:get, default_event_feed, nil, {"max-results" => "10000"}))
