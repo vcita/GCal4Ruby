@@ -61,13 +61,12 @@ module GCal4Ruby
       # Otherwise use the default service
       @gdata_service ||= GData4Ruby::Service.new(attributes)
       attributes.each do |key, value|
-        if self.respond_to?(key)
+        if self.respond_to?("#{key}=")
           self.send("#{key}=", value)
         end
       end    
-      @check_public ||= true
       @account ||= "default"
-      @debug ||= false
+      log("Check Public: #{check_public}")
     end
     
     def debug
@@ -77,6 +76,10 @@ module GCal4Ruby
     def debug=(value)
       @debug=value
       @gdata_service.debug = value
+    end
+    
+    def log(string)
+      puts string if self.debug
     end
     
     def default_event_feed
@@ -111,11 +114,11 @@ module GCal4Ruby
     #Returns an array of Calendar objects for each calendar associated with 
     #the authenticated account.
     def calendars
-      ret = @gdata_service.send_request(GData4Ruby::Request.new(:get, create_url(@@calendar_list_feed), nil, {"max-results" => "10000"}))
+      ret = send_request(GData4Ruby::Request.new(:get, create_url(@@calendar_list_feed), nil, {"max-results" => "10000"}))
       cals = []
       REXML::Document.new(ret.body).root.elements.each("entry"){}.map do |entry|
         entry = GData4Ruby::Utils.add_namespaces(entry)
-        cal = Calendar.new(self)
+        cal = Calendar.new(self, {:debug => debug})
         cal.load(entry.to_s)
         cals << cal
       end
@@ -128,7 +131,7 @@ module GCal4Ruby
       events = []
       REXML::Document.new(ret.body).root.elements.each("entry"){}.map do |entry|
         entry = GData4Ruby::Utils.add_namespaces(entry)
-        event = Event.new(self)
+        event = Event.new(self, {:debug => debug})
         event.load(entry.to_s)
         events << event
       end

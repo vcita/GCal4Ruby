@@ -97,10 +97,11 @@ module GCal4Ruby
       @color ||= "#2952A3"
       @where ||= ""
       attributes.each do |key, value|
-        if self.respond_to("#{key}=")
+        if self.respond_to?("#{key}=")
           self.send("#{key}=", value)
         end
       end
+      @debug ||= false
       return true
     end
     
@@ -118,7 +119,7 @@ module GCal4Ruby
     #Returns an array of Event objects corresponding to each event in the calendar.
     def events
       events = []
-      ret = @service.send_request(GData4Ruby::Request.new(:get, @content_uri))
+      ret = service.send_request(GData4Ruby::Request.new(:get, @content_uri))
       REXML::Document.new(ret.body).root.elements.each("entry"){}.map do |entry|
         entry = GData4Ruby::Utils.add_namespaces(entry)
         e = Event.new(service)
@@ -136,12 +137,12 @@ module GCal4Ruby
       ret = super
       return ret if public == @public
       if public
-        puts 'setting calendar to public' if service.debug
-        rule = GData4Ruby::ACL::AccessRule.new(service, self)
+        log('setting calendar to public')
+        rule = GData4Ruby::ACL::AccessRule.new(service.gdata_service, self)
         rule.role = 'http://schemas.google.com/gCal/2005#read'
         rule.save
       else
-        rule = GData4Ruby::ACL::AccessRule.find(service, self, {:user => 'default'})
+        rule = GData4Ruby::ACL::AccessRule.find(service.gdata_service, self, {:user => 'default'})
         rule.delete if rule
       end
       reload
@@ -259,7 +260,7 @@ module GCal4Ruby
         end
       end
       
-      if @service.check_public
+      if service.check_public
         log("Getting ACL Feed")
         
         # If the ACL URI doesn't exist, then its definitely not public
