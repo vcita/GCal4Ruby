@@ -26,11 +26,11 @@ Below are some common usage examples.  For more examples, check the documentatio
 
 ####Service
 
-# Authenticate with the AuthSub service (quickest, dirtiest)
+##### Authenticate with the AuthSub service (quickest, dirtiest)
     service = Service.new
     service.authenticate({:username => "user@gmail.com", :password => "password"})
 
-# Authenticate using OAuth (more setup, easier for an app)
+##### Authenticate using OAuth (more setup, easier for an app)
 	service = Service.new({:GData4RubyService => :OAuthService})
 	service.authenticate(my_oauth_accesstoken)
 
@@ -56,7 +56,9 @@ All usages assume a successfully authenticated Service.
 
 5. Find all calendars containing a search term
     cal = Calendar.find(service, "Soccer Team")
+
 ### Event
+
 All usages assume a successfully authenticated Service and valid Calendar.
 1. Create a new Event
     event = Event.new(service, {:calendar => cal, :title => "Soccer Game", :start => Time.parse("12-06-2009 at 12:30 PM"), :end => Time.parse("12-06-2009 at 1:30 PM"), :where => "Merry Playfields"})
