@@ -33,7 +33,8 @@ Below are some common usage examples.  For more examples, check the documentatio
 # Authenticate using OAuth (more setup, easier for an app)
 	service = Service.new({:GData4RubyService => :OAuthService})
 	service.authenticate(my_oauth_accesstoken)
-	See edave-GData4Ruby
+
+See [edave-GData4Ruby](https://github.com/edave/GData4Ruby) for more details
 
 # Get Calendar List
     calendars = service.calendars
