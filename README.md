@@ -15,6 +15,7 @@ here: http://www.gnu.org/licenses/lgpl.html.
 http://cookingandcoding.com/gcal4ruby/ (original GCal4Ruby plugin)
 
 ### Description
+
 GCal4Ruby has three major components: the service, calendar and event objects.  Each service
 has many calendars, which in turn have many events.  Each service is the representation of a
 google account, and thus must be successfully authenticated using valid Google Calendar
@@ -32,7 +33,7 @@ Below are some common usage examples.  For more examples, check the documentatio
 
 ##### Authenticate using OAuth (more setup, easier for an app)
 	service = Service.new({:GData4RubyService => :OAuthService})
-	service.authenticate(my_oauth_accesstoken)
+	service.authenticate({:access_token=>my_oauth_accesstoken})
 
 See [edave-GData4Ruby](https://github.com/edave/GData4Ruby) for more details
 
