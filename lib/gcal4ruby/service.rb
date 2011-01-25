@@ -53,10 +53,10 @@ module GCal4Ruby
     attr_accessor :check_public
     
     #Accepts an optional attributes hash for initialization values
-    def initialize(attributes = {}, service = nil)
+    def initialize(attributes = {})
       # If the user has specified the type of GData4Ruby class they want, instantiate it
-      if(service != nil)
-        @gdata_service = GData4Ruby.const_get(service).new(attributes)
+      if(attributes.has_key?(:GData4RubyService))
+        @gdata_service = GData4Ruby.const_get(attributes[:GData4RubyService]).new(attributes)
       end
       # Otherwise use the default service
       @gdata_service ||= GData4Ruby::Service.new(attributes)
@@ -112,20 +112,29 @@ module GCal4Ruby
       end
       @gdata_service.send_request(request)
     end
-  
+    
+    
     #Returns an array of Calendar objects for each calendar associated with 
     #the authenticated account.
-    def calendars
-      ret = send_request(GData4Ruby::Request.new(:get, create_url(@@calendar_list_feed + "?fields=entry(@gd:*,id,title)"), nil, {"max-results" => "10000"}))
+    # If you want to only load some attributes, you can pass in an array of 
+    # string attributes via options[:fields], for example ["@gd:*", "id", "title"]
+    def calendars(options = {})
+      if(options[:fields])
+        params = "?fields=entry(#{options[:fields].join(",")})"
+      end
+      params ||= ""
+      ret = send_request(GData4Ruby::Request.new(:get, create_url(@@calendar_list_feed + params), nil, {"max-results" => "10000"}))
       cals = []
       REXML::Document.new(ret.body).root.elements.each("entry"){}.map do |entry|
         entry = GData4Ruby::Utils.add_namespaces(entry)
         cal = Calendar.new(self, {:debug => debug})
+        log(entry.inspect)
         cal.load(entry.to_s)
         cals << cal
       end
       return cals
     end
+
     
     #Returns an array of Event objects for each event in this account
     def events

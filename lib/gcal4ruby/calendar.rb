@@ -264,6 +264,7 @@ module GCal4Ruby
         
         # If the ACL URI doesn't exist, then its definitely not public
         if (@acl_uri == nil)
+          log("Not Public")
           @public = false
           return true
         end

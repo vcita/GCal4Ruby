@@ -392,6 +392,9 @@ module GCal4Ruby
           end
         else
           service.calendars.each do |cal|
+            puts "Event.find() searching calendar: " if service.debug
+            puts cal.content_uri if service.debug
+            puts args.inspect if service.debug
             ret = service.send_request(GData4Ruby::Request.new(:get, cal.content_uri, nil, nil, args))
             xml = REXML::Document.new(ret.body).root
             xml.elements.each("entry") do |e|
