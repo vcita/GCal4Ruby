@@ -1,4 +1,4 @@
-# edave-GCal4Ruby
+# vcita-GCal4Ruby
 
 ## Introduction
 GCal4Ruby is a full featured wrapper for the google calendar API.  GCal4Ruby implements
@@ -35,7 +35,7 @@ Below are some common usage examples.  For more examples, check the documentatio
 	service = Service.new({:GData4RubyService => :OAuthService})
 	service.authenticate({:access_token=>my_oauth_accesstoken})
 
-See [edave-GData4Ruby](https://github.com/edave/GData4Ruby) for more details
+See [vcita-GData4Ruby](https://github.com/vcita/GData4Ruby) for more details
 
 # Get Calendar List
     calendars = service.calendars
