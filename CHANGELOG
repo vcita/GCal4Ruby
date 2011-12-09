@@ -1,4 +1,6 @@
 =CHANGELOG
+==version 0.7.1
+* Forked by vCita
 ==version 0.6.0
 * Updated Service to work with multiple types of GData4Ruby services
 ==version 0.5.5 
