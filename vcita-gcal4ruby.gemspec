@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{vcita-gcal4ruby}
-  s.version = "0.7.2"
+  s.version = "0.7.3"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Mike Reich", "Anthony Underwood", "David Pitman"]
-  s.date = %q{2011-12-09}
+  s.date = %q{2012-12-17}
   s.email = ["mike@seabourneconsulting.com", "email2ants@gmail.com", "ui-design@vestaldesign.com"]
   s.extra_rdoc_files = [
     "README.md"
