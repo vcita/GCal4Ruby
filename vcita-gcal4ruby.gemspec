@@ -5,7 +5,7 @@
 
 Gem::Specification.new do |s|
   s.name = %q{vcita-gcal4ruby}
-  s.version = "0.7.3"
+  s.version = "0.7.4"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Mike Reich", "Anthony Underwood", "David Pitman"]
@@ -20,6 +20,7 @@ Gem::Specification.new do |s|
     "lib/gcal4ruby.rb",
     "lib/gcal4ruby/calendar.rb",
     "lib/gcal4ruby/event.rb",
+	"lib/gcal4ruby/free_busy.rb",
     "lib/gcal4ruby/recurrence.rb",
     "lib/gcal4ruby/service.rb"
   ]
